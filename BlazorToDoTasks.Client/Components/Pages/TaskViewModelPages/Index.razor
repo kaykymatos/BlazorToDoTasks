@@ -1,0 +1,51 @@
+﻿@* @page "/taskviewmodels"
+@using Microsoft.AspNetCore.Components.QuickGrid
+@inject BlazorToDoTasks.Client.Data.BlazorToDoTasksClientContext DB
+@using BlazorToDoTasks.Client.ViewModels
+
+<PageTitle>Index</PageTitle>
+
+<h1>Index</h1>
+
+<p>
+    <a href="taskviewmodels/create">Create New</a>
+</p>
+
+<QuickGrid Class="table" Items="DB.TaskViewModel">
+    <PropertyColumn Property="taskviewmodel => taskviewmodel.Title" />
+    <PropertyColumn Property="taskviewmodel => taskviewmodel.Description" />
+    <PropertyColumn Property="taskviewmodel => taskviewmodel.StartDate" />
+    <PropertyColumn Property="taskviewmodel => taskviewmodel.EndDate" />
+
+    <TemplateColumn Context="taskviewmodel">
+        <a href="@($"taskviewmodels/edit?id={taskviewmodel.Id}")">Edit</a> |
+        <a href="@($"taskviewmodels/details?id={taskviewmodel.Id}")">Details</a> |
+        <a href="@($"taskviewmodels/delete?id={taskviewmodel.Id}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>
+ *@@* @page "/taskviewmodels"
+@using Microsoft.AspNetCore.Components.QuickGrid
+@inject BlazorToDoTasks.Client.Data.BlazorToDoTasksClientContext DB
+@using BlazorToDoTasks.Client.ViewModels
+
+<PageTitle>Index</PageTitle>
+
+<h1>Index</h1>
+
+<p>
+    <a href="taskviewmodels/create">Create New</a>
+</p>
+
+<QuickGrid Class="table" Items="DB.TaskViewModel">
+    <PropertyColumn Property="taskviewmodel => taskviewmodel.Title" />
+    <PropertyColumn Property="taskviewmodel => taskviewmodel.Description" />
+    <PropertyColumn Property="taskviewmodel => taskviewmodel.StartDate" />
+    <PropertyColumn Property="taskviewmodel => taskviewmodel.EndDate" />
+
+    <TemplateColumn Context="taskviewmodel">
+        <a href="@($"taskviewmodels/edit?id={taskviewmodel.Id}")">Edit</a> |
+        <a href="@($"taskviewmodels/details?id={taskviewmodel.Id}")">Details</a> |
+        <a href="@($"taskviewmodels/delete?id={taskviewmodel.Id}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>
+ *@

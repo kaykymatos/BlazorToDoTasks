@@ -1,0 +1,97 @@
+﻿@page "/taskviewmodels/create"
+@using BlazorToDoTasks.Client.ViewModels
+@using BlazorToDoTasks.Client.Components.Alerts
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+@inject HttpClient httpClient
+<PageTitle>Create</PageTitle>
+
+<h1>Create</h1>
+
+<h4>TaskViewModel</h4>
+<hr />
+<div class="row">
+    <ErrorAlert ServerError="@ServerError" />
+    <button @onclick="ChangeErro">Click</button>
+    <div class="col-md-4">
+        <EditForm method="post" EditContext="editContext" OnValidSubmit="AddTaskViewModel" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" />
+            <div class="mb-3">
+                <label for="title" class="form-label">Title:</label>
+                <InputText id="title" @bind-Value="TaskViewModel.Title" class="form-control" />
+                <ValidationMessage For="() => TaskViewModel.Title" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Description:</label>
+                <InputText id="description" @bind-Value="TaskViewModel.Description" class="form-control" />
+                <ValidationMessage For="() => TaskViewModel.Description" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="startdate" class="form-label">StartDate:</label>
+                <InputDate id="startdate" @bind-Value="TaskViewModel.StartDate" class="form-control" />
+                <ValidationMessage For="() => TaskViewModel.StartDate" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="enddate" class="form-label">EndDate:</label>
+                <InputDate id="enddate" @bind-Value="TaskViewModel.EndDate" class="form-control" />
+                <ValidationMessage For="() => TaskViewModel.EndDate" class="text-danger" />
+            </div>
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/taskviewmodels">Back to List</a>
+</div>
+
+@code {
+
+    public void ChangeErro()
+    {
+        ServerError = "Teste";
+    }
+    private string ServerError { get; set; }
+    [SupplyParameterFromForm]
+    public TaskViewModel TaskViewModel { get; set; } = new();
+
+    private EditContext editContext;
+    private ValidationMessageStore validationMessageStore;
+   
+    protected override void OnInitialized()
+    {
+        editContext = new EditContext(TaskViewModel);
+        validationMessageStore = new ValidationMessageStore(editContext);
+    }
+    public async Task AddTaskViewModel()
+    {
+        var response = await httpClient.PostAsJson("/api/v1/tasks", TaskViewModel);
+        if (response.IsSuccessStatusCode)
+        {
+            NavigationManager.NavigateTo("/taskviewmodels");
+        }
+        else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        {
+            validationMessageStore.Clear();
+            var errorResponse = await response.ReadContentAs<List<ErrorResponseViewModel>>();
+
+            if (errorResponse != null)
+            {
+                foreach (var error in errorResponse)
+                {
+                    var fieldIdentifier = new FieldIdentifier(TaskViewModel, error.PropertyName);
+                    validationMessageStore.Add(fieldIdentifier, error.ErrorMessage);
+                }
+
+                editContext.NotifyValidationStateChanged();
+            }
+            else
+        if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+            {
+                ServerError = "Erro interno no servidor";
+            }
+
+        }
+    }
+}
