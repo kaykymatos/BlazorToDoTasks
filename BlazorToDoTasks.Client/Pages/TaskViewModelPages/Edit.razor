@@ -1,0 +1,109 @@
+﻿@page "/TaskViewModels/edit"
+@using BlazorToDoTasks.Client.ViewModels
+@inject IToDoTasksService service
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h4>TaskViewModel</h4>
+<hr />
+@if (TaskViewModel is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="TaskViewModel" OnValidSubmit="UpdateTaskViewModel" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <input type="hidden" name="TaskViewModel.Id" value="@TaskViewModel.Id" />
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title:</label>
+                    <InputText id="title" @bind-Value="TaskViewModel.Title" class="form-control" />
+                    <ValidationMessage For="() => TaskViewModel.Title" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description:</label>
+                    <InputText id="description" @bind-Value="TaskViewModel.Description" class="form-control" />
+                    <ValidationMessage For="() => TaskViewModel.Description" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="startdate" class="form-label">StartDate:</label>
+                    <InputDate id="startdate" @bind-Value="TaskViewModel.StartDate" class="form-control" />
+                    <ValidationMessage For="() => TaskViewModel.StartDate" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="enddate" class="form-label">EndDate:</label>
+                    <InputDate id="enddate" @bind-Value="TaskViewModel.EndDate" class="form-control" />
+                    <ValidationMessage For="() => TaskViewModel.EndDate" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="done" class="form-label">Done:</label>
+                    <InputCheckbox id="done" @bind-Value="TaskViewModel.Done" class="form-control" />
+                    <ValidationMessage For="() => TaskViewModel.Done" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/taskviewmodels">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    public TaskViewModel? TaskViewModel { get; set; }
+
+    private EditContext editContext;
+    private ValidationMessageStore validationMessageStore;
+    private string ServerError { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        TaskViewModel ??= await service.GetTaskById(Id);
+
+        if (TaskViewModel is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more details, see https://aka.ms/RazorPagesCRUD.
+    public async Task UpdateTaskViewModel()
+    {
+        var response = await service.CreateTask(TaskViewModel);
+        if (response == null)
+        {
+            ServerError = "Erro interno no servidor";
+        }
+        else if (response.Count == 0)
+        {
+            NavigationManager.NavigateTo("/taskviewmodels");
+        }
+        else
+        {
+            validationMessageStore.Clear();
+            foreach (var error in response)
+            {
+                var fieldIdentifier = new FieldIdentifier(TaskViewModel, error.PropertyName);
+                validationMessageStore.Add(fieldIdentifier, error.ErrorMessage);
+            }
+            editContext.NotifyValidationStateChanged();
+        }
+    }
+
+    bool TaskViewModelExists(int id)
+    {
+        return service.GetTaskById(id)!=null;
+    }
+}

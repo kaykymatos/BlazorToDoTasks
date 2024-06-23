@@ -1,6 +1,6 @@
-﻿@* @page "/taskviewmodels/details"
-@inject BlazorToDoTasks.Client.Data.BlazorToDoTasksClientContext DB
+﻿ @page "/taskviewmodels/details"
 @using BlazorToDoTasks.Client.ViewModels
+@inject IToDoTasksService service
 @inject NavigationManager NavigationManager
 @using Microsoft.EntityFrameworkCore
 
@@ -41,7 +41,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        taskviewmodel = await DB.TaskViewModel.FirstOrDefaultAsync(m => m.Id == Id);
+        taskviewmodel = await service.GetTaskById(Id);
 
         if (taskviewmodel is null)
         {
@@ -49,4 +49,3 @@
         }
     }
 }
- *@

@@ -3,7 +3,7 @@
 @using BlazorToDoTasks.Client.Components.Alerts
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
-@inject HttpClient httpClient
+@inject IToDoTasksService service
 <PageTitle>Create</PageTitle>
 
 <h1>Create</h1>
@@ -12,7 +12,6 @@
 <hr />
 <div class="row">
     <ErrorAlert ServerError="@ServerError" />
-    <button @onclick="ChangeErro">Click</button>
     <div class="col-md-4">
         <EditForm method="post" EditContext="editContext" OnValidSubmit="AddTaskViewModel" FormName="create" Enhance>
             <DataAnnotationsValidator />
@@ -58,7 +57,7 @@
 
     private EditContext editContext;
     private ValidationMessageStore validationMessageStore;
-   
+
     protected override void OnInitialized()
     {
         editContext = new EditContext(TaskViewModel);
@@ -66,32 +65,24 @@
     }
     public async Task AddTaskViewModel()
     {
-        var response = await httpClient.PostAsJson("/api/v1/tasks", TaskViewModel);
-        if (response.IsSuccessStatusCode)
+        var response = await service.CreateTask(TaskViewModel);
+        if (response == null)
+        {
+            ServerError = "Erro interno no servidor";
+        }
+        else if (response.Count == 0)
         {
             NavigationManager.NavigateTo("/taskviewmodels");
         }
-        else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        else
         {
             validationMessageStore.Clear();
-            var errorResponse = await response.ReadContentAs<List<ErrorResponseViewModel>>();
-
-            if (errorResponse != null)
+            foreach (var error in response)
             {
-                foreach (var error in errorResponse)
-                {
-                    var fieldIdentifier = new FieldIdentifier(TaskViewModel, error.PropertyName);
-                    validationMessageStore.Add(fieldIdentifier, error.ErrorMessage);
-                }
-
-                editContext.NotifyValidationStateChanged();
+                var fieldIdentifier = new FieldIdentifier(TaskViewModel, error.PropertyName);
+                validationMessageStore.Add(fieldIdentifier, error.ErrorMessage);
             }
-            else
-        if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
-            {
-                ServerError = "Erro interno no servidor";
-            }
-
+            editContext.NotifyValidationStateChanged();
         }
     }
 }

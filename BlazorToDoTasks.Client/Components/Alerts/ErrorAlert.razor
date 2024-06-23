@@ -1,10 +1,11 @@
-﻿
-<Alert Color="AlertColor.Danger">
-    <Icon Name="IconName.ExclamationTriangleFill" class="me-2"></Icon>
-    @ServerError
-</Alert>
-
+﻿@if (string.IsNullOrWhiteSpace(ServerError))
+{
+    <Alert Color="AlertColor.Danger">
+        <Icon Name="IconName.ExclamationTriangleFill" class="me-2"></Icon>
+        @ServerError
+    </Alert>
+}
 @code {
-   [Parameter]
-   public string ServerError{ get; set; }
+    [Parameter]
+    public string ServerError { get; set; }
 }

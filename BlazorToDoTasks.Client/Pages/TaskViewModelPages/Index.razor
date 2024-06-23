@@ -1,0 +1,41 @@
+﻿@page "/taskviewmodels"
+@using Microsoft.AspNetCore.Components.QuickGrid
+@inject IToDoTasksService service
+@using BlazorToDoTasks.Client.ViewModels
+
+<PageTitle>Index</PageTitle>
+
+<h1>Index</h1>
+
+<p>
+    <a href="taskviewmodels/create">Create New</a>
+</p>
+
+<QuickGrid Pagination="@pagination" Items="@tasksQueryable">
+    <PropertyColumn Property="taskviewmodel => taskviewmodel.Title" Title="Titulo" Sortable="true" />
+    <PropertyColumn Property="taskviewmodel => taskviewmodel.Description" Title="Descrição" Sortable="true" />
+    <PropertyColumn Property="taskviewmodel => taskviewmodel.StartDate" Title="Data de início" Sortable="true" />
+    <PropertyColumn Property="taskviewmodel => taskviewmodel.EndDate" Title="Data final" Sortable="true" />
+    <PropertyColumn Property="taskviewmodel => taskviewmodel.Done" Title="Concluida" Sortable="true" />
+
+    <TemplateColumn Context="taskviewmodel">
+        <a href="@($"taskviewmodels/edit?id={taskviewmodel.Id}")">Edit</a> |
+        <a href="@($"taskviewmodels/details?id={taskviewmodel.Id}")">Details</a> |
+        <a href="@($"taskviewmodels/delete?id={taskviewmodel.Id}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+
+    IQueryable<TaskViewModel> tasksQueryable;
+    PaginationState pagination = new PaginationState { ItemsPerPage = 5 };
+
+    private bool concluida;
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await service.GetAllTasks();
+        var queryable = response.AsQueryable<TaskViewModel>();
+        tasksQueryable = queryable;
+    }
+
+}
