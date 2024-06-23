@@ -12,7 +12,7 @@ namespace BlazorToDoTasks.Api.Extensions
         }
         public static IRuleBuilderOptions<T, string> NonNullOrEmpty<T>(this IRuleBuilderInitial<T, string> ruleBuilder)
         {
-            return ruleBuilder.Must(string.IsNullOrWhiteSpace)
+            return ruleBuilder.Must(x=>!string.IsNullOrWhiteSpace(x))
                          .WithMessage("O campo '{PropertyName}' não pode ser nulo.");
         }
     }
