@@ -1,4 +1,4 @@
-﻿@if (string.IsNullOrWhiteSpace(ServerError))
+﻿@if (!string.IsNullOrWhiteSpace(ServerError))
 {
     <Alert Color="AlertColor.Danger">
         <Icon Name="IconName.ExclamationTriangleFill" class="me-2"></Icon>

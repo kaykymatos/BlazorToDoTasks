@@ -47,36 +47,49 @@
 
 @code {
 
-    public void ChangeErro()
-    {
-        ServerError = "Teste";
-    }
     private string ServerError { get; set; }
     [SupplyParameterFromForm]
     public TaskViewModel TaskViewModel { get; set; } = new();
 
     private EditContext editContext;
     private ValidationMessageStore validationMessageStore;
-
     protected override void OnInitialized()
+    {
+        InitializeTaskViewModel();
+        ServerError = null;
+        InitializeEditContext();
+    }
+
+    private void InitializeTaskViewModel()
+    {
+        TaskViewModel.StartDate = new DateTime(DateTime.Now.Year, 1, 1);
+        TaskViewModel.EndDate = new DateTime(DateTime.Now.Year, 1, 1);
+    }
+
+    private void InitializeEditContext()
     {
         editContext = new EditContext(TaskViewModel);
         validationMessageStore = new ValidationMessageStore(editContext);
+        editContext.OnValidationStateChanged += (sender, e) => StateHasChanged();
     }
+
     public async Task AddTaskViewModel()
     {
+        validationMessageStore.Clear();
+        ServerError = null;
+
         var response = await service.CreateTask(TaskViewModel);
         if (response == null)
         {
             ServerError = "Erro interno no servidor";
         }
-        else if (response.Count == 0)
+        else if (response.Count() == 0)
         {
             NavigationManager.NavigateTo("/taskviewmodels");
         }
         else
         {
-            validationMessageStore.Clear();
+
             foreach (var error in response)
             {
                 var fieldIdentifier = new FieldIdentifier(TaskViewModel, error.PropertyName);

@@ -1,5 +1,6 @@
 ﻿using BlazorToDoTasks.Api.Models;
 using BlazorToDoTasks.Api.Services;
+using FluentValidation;
 
 namespace BlazorToDoTasks.Api.Endpoints.V1
 {

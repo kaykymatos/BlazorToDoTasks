@@ -1,7 +1,10 @@
 using BlazorToDoTasks.Api.Data;
 using BlazorToDoTasks.Api.Endpoints.V1;
+using BlazorToDoTasks.Api.Models;
 using BlazorToDoTasks.Api.Repositories;
 using BlazorToDoTasks.Api.Services;
+using BlazorToDoTasks.Api.Validation;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,7 +20,7 @@ builder.Services.AddDbContext<ApplicationContext>(opt =>
 
 builder.Services.AddScoped<IToDoTasksRepository, ToDoTasksRepository>();
 builder.Services.AddScoped<IToDoTasksService, ToDoTasksService>();
-
+builder.Services.AddTransient<IValidator<TaskModel>, TaskValidation>();
 var app = builder.Build();
 
 app.ToDoTasks();

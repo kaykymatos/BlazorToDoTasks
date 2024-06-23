@@ -81,12 +81,12 @@ else
     // For more details, see https://aka.ms/RazorPagesCRUD.
     public async Task UpdateTaskViewModel()
     {
-        var response = await service.CreateTask(TaskViewModel);
+        var response = await service.UpdateTask(TaskViewModel);
         if (response == null)
         {
             ServerError = "Erro interno no servidor";
         }
-        else if (response.Count == 0)
+        else if (response.Count() == 0)
         {
             NavigationManager.NavigateTo("/taskviewmodels");
         }
