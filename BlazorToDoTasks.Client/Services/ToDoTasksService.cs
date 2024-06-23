@@ -6,31 +6,29 @@ namespace BlazorToDoTasks.Client.Services
     public class ToDoTasksService : IToDoTasksService
     {
         private readonly HttpClient _httpClient;
-        private const string BasePath="/api/v1/tasks";
+        private const string BasePath = "/api/v1/tasks";
         public ToDoTasksService(HttpClient httpClient)
         {
             _httpClient = httpClient;
         }
 
-        public async Task<List<ErrorResponseViewModel>> CreateTask(TaskViewModel model)
+        public async Task<IEnumerable<ErrorResponseViewModel>> CreateTask(TaskViewModel model)
         {
-            var response =await _httpClient.PostAsJson(BasePath, model);
+            var response = await _httpClient.PostAsJson(BasePath, model);
             if (response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.BadRequest)
                 return await response.ReadContentAs<List<ErrorResponseViewModel>>();
             else
                 return null;
         }
 
-        public async Task<List<ErrorResponseViewModel>> DeleteTask(int id)
+        public async Task<bool> DeleteTask(int id)
         {
             var response = await _httpClient.DeleteAsync($"{BasePath}/{id}");
-            if (response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.BadRequest)
-                return await response.ReadContentAs<List<ErrorResponseViewModel>>();
-            else
-                return null;
+            return response.IsSuccessStatusCode;
+
         }
 
-        public async Task<List<TaskViewModel>> GetAllTasks()
+        public async Task<IEnumerable<TaskViewModel>> GetAllTasks()
         {
             var response = await _httpClient.GetAsync(BasePath);
             if (response.IsSuccessStatusCode)
@@ -48,10 +46,13 @@ namespace BlazorToDoTasks.Client.Services
                 return new TaskViewModel();
         }
 
-        public async Task<bool> UpdateTask(TaskViewModel model)
+        public async Task<IEnumerable<ErrorResponseViewModel>> UpdateTask(TaskViewModel model)
         {
             var response = await _httpClient.PutAsJson(BasePath, model);
-            return response.IsSuccessStatusCode;
+            if (response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                return await response.ReadContentAs<List<ErrorResponseViewModel>>();
+            else
+                return null;
         }
     }
 }
