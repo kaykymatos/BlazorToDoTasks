@@ -1,13 +1,15 @@
-﻿using BlazorToDoTasks.Client.Components;
+﻿using BlazorToDoTasks.Client;
+using BlazorToDoTasks.Client.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddBlazorBootstrap();
 
-builder.Services.AddQuickGridEntityFrameworkAdapter(); ;
-builder.Services.AddHttpClient("DefaultHttpClient", client =>
+builder.Services.AddQuickGridEntityFrameworkAdapter();
+
+builder.Services.AddHttpClient<IToDoTasksService, ToDoTasksService>(x =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["ApiUrls:TasksApi"]);
-    client.DefaultRequestHeaders.Add("Accept", "application/json");
+    x.DefaultRequestHeaders.Add("Accept", "application/json");
+    x.BaseAddress = new Uri(builder.Configuration["ApiUrls:TasksApi"]);
 });
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();

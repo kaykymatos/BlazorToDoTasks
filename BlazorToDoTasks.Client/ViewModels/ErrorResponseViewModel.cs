@@ -1,6 +1,4 @@
-﻿using System.Security.Policy;
-
-namespace BlazorToDoTasks.Client.ViewModels
+﻿namespace BlazorToDoTasks.Client.ViewModels
 {
     public class ErrorResponseViewModel
     {

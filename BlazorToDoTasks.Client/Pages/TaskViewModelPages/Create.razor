@@ -1,22 +1,23 @@
 ﻿@page "/taskviewmodels/create"
+@page "/taskviewmodels/edit/{Id:int}"
+
 @using BlazorToDoTasks.Client.ViewModels
 @using BlazorToDoTasks.Client.Components.Alerts
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
-@inject HttpClient httpClient
-<PageTitle>Create</PageTitle>
+@inject IToDoTasksService service
+<PageTitle>@(Id > 0 ? "Update" : "Create")</PageTitle>
 
-<h1>Create</h1>
+<h1>@(Id > 0 ? "Update" : "Create")</h1>
 
-<h4>TaskViewModel</h4>
+<h4>Task</h4>
 <hr />
 <div class="row">
     <ErrorAlert ServerError="@ServerError" />
-    <button @onclick="ChangeErro">Click</button>
     <div class="col-md-4">
-        <EditForm method="post" EditContext="editContext" OnValidSubmit="AddTaskViewModel" FormName="create" Enhance>
+        <EditForm method="post" Model="TaskViewModel" OnValidSubmit="AddTaskViewModel" FormName="create" Enhance>
             <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" />
+            <ServerValidator @ref="_serverValidator" />
             <div class="mb-3">
                 <label for="title" class="form-label">Title:</label>
                 <InputText id="title" @bind-Value="TaskViewModel.Title" class="form-control" />
@@ -47,51 +48,55 @@
 </div>
 
 @code {
-
-    public void ChangeErro()
-    {
-        ServerError = "Teste";
-    }
+    [Parameter]
+    public int Id { get; set; }
     private string ServerError { get; set; }
     [SupplyParameterFromForm]
     public TaskViewModel TaskViewModel { get; set; } = new();
 
-    private EditContext editContext;
-    private ValidationMessageStore validationMessageStore;
-   
+    private ServerValidator _serverValidator;
+
     protected override void OnInitialized()
     {
-        editContext = new EditContext(TaskViewModel);
-        validationMessageStore = new ValidationMessageStore(editContext);
+        InitializeTaskViewModel();
+        ServerError = null;
     }
+
+    private void InitializeTaskViewModel()
+    {
+        TaskViewModel.StartDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
+        TaskViewModel.EndDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
+    }
+
+
     public async Task AddTaskViewModel()
     {
-        var response = await httpClient.PostAsJson("/api/v1/tasks", TaskViewModel);
-        if (response.IsSuccessStatusCode)
+
+        ServerError = null;
+
+        IEnumerable<ErrorResponseViewModel> response;
+        if (TaskViewModel.Id == 0)
+            response = await service.CreateTask(TaskViewModel);
+        else
+            response = await service.UpdateTask(TaskViewModel);
+
+        if (response == null)
+        {
+            ServerError = "Erro interno no servidor";
+        }
+        else if (response.Count() == 0)
         {
             NavigationManager.NavigateTo("/taskviewmodels");
         }
-        else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        else
         {
-            validationMessageStore.Clear();
-            var errorResponse = await response.ReadContentAs<List<ErrorResponseViewModel>>();
-
-            if (errorResponse != null)
-            {
-                foreach (var error in errorResponse)
-                {
-                    var fieldIdentifier = new FieldIdentifier(TaskViewModel, error.PropertyName);
-                    validationMessageStore.Add(fieldIdentifier, error.ErrorMessage);
-                }
-
-                editContext.NotifyValidationStateChanged();
-            }
-            else
-        if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
-            {
-                ServerError = "Erro interno no servidor";
-            }
+            _serverValidator.DisplayErrors(response);
 
         }
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id > 0)
+            TaskViewModel = await service.GetTaskById(Id);
     }
 }

@@ -1,8 +1,7 @@
 ﻿@page "/taskviewmodels/delete"
-@inject HttpClient httpClient
+@inject IToDoTasksService service
 @using BlazorToDoTasks.Client.ViewModels
 @inject NavigationManager NavigationManager
-@using Microsoft.EntityFrameworkCore
 
 <PageTitle>Delete</PageTitle>
 
@@ -34,6 +33,10 @@
             <dt class="col-sm-2">EndDate</dt>
             <dd class="col-sm-10">@taskviewmodel.EndDate</dd>
         </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Done</dt>
+            <dd class="col-sm-10">@taskviewmodel.Done</dd>
+        </dl>
         <EditForm method="post" Model="taskviewmodel" OnValidSubmit="DeleteTaskViewModel" FormName="delete" Enhance>
             <button type="submit" class="btn btn-danger" disabled="@(taskviewmodel is null)">Delete</button> |
             <a href="/taskviewmodels">Back to List</a>
@@ -50,8 +53,8 @@
     private string ServerError { get; set; }
     protected override async Task OnInitializedAsync()
     {
-        var response = await httpClient.GetAsync($"/api/v1/tasks/{Id}");
-        taskviewmodel = await response.ReadContentAs<TaskViewModel>();
+        taskviewmodel = await service.GetTaskById(Id);
+
 
         if (taskviewmodel is null)
         {
@@ -61,10 +64,15 @@
 
     public async Task DeleteTaskViewModel()
     {
-        var response = await httpClient.DeleteAsync($"/api/v1/tasks/{Id}"); 
-        if (response.IsSuccessStatusCode)
-            NavigationManager.NavigateTo("/taskviewmodels");
+        var response = await service.DeleteTask(Id);
+        if (!response)
+        {
+            ServerError = "Erro ao tentar excluir task";
+        }
         else
-            ServerError = $"Erro au tentar deletar task: {taskviewmodel?.Title}";
+        {
+            NavigationManager.NavigateTo("/taskviewmodels");
+        }
+
     }
 }
